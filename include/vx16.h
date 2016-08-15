@@ -56,18 +56,26 @@ namespace vx16
         Storage m_storage;
     };
 
+#define DEFINE_REGISTER_CLASS(SIZE)             \
+    class Register##SIZE                        \
+    {                                           \
+        friend class CPU;                       \
+                                                \
+        constexpr Register##SIZE(uint8_t index) \
+        : m_index(index)                        \
+        {                                       \
+        }                                       \
+                                                \
+        uint8_t m_index;                        \
+    }
+
+    DEFINE_REGISTER_CLASS(8);
+    DEFINE_REGISTER_CLASS(16);
+
+#undef DEFINE_REGISTER_CLASS
+
     class CPU
     {
-        struct Register8
-        {
-            uint8_t m_index;
-        };
-
-        struct Register16
-        {
-            uint8_t m_index;
-        };
-
     public:
         explicit CPU(Memory& memory)
         : m_memory(memory)
@@ -120,32 +128,32 @@ namespace vx16
 
         uint16_t flags() const { return m_flags; }
 
-        static constexpr Register8 AL = { 0 };
-        static constexpr Register8 AH = { 1 };
-        static constexpr Register8 BL = { 2 };
-        static constexpr Register8 BH = { 3 };
-        static constexpr Register8 CL = { 4 };
-        static constexpr Register8 CH = { 5 };
-        static constexpr Register8 DL = { 6 };
-        static constexpr Register8 DH = { 7 };
+        static constexpr Register8 AL{ 0 };
+        static constexpr Register8 AH{ 1 };
+        static constexpr Register8 BL{ 2 };
+        static constexpr Register8 BH{ 3 };
+        static constexpr Register8 CL{ 4 };
+        static constexpr Register8 CH{ 5 };
+        static constexpr Register8 DL{ 6 };
+        static constexpr Register8 DH{ 7 };
 
-        static constexpr Register16 AX = { 0 };
-        static constexpr Register16 BX = { 1 };
-        static constexpr Register16 CX = { 2 };
-        static constexpr Register16 DX = { 3 };
+        static constexpr Register16 AX{ 0 };
+        static constexpr Register16 BX{ 1 };
+        static constexpr Register16 CX{ 2 };
+        static constexpr Register16 DX{ 3 };
 
-        static constexpr Register16 BP = { 4 };
-        static constexpr Register16 SI = { 5 };
-        static constexpr Register16 DI = { 6 };
-        static constexpr Register16 SP = { 7 };
+        static constexpr Register16 BP{ 4 };
+        static constexpr Register16 SI{ 5 };
+        static constexpr Register16 DI{ 6 };
+        static constexpr Register16 SP{ 7 };
 
-        static constexpr Register16 DS = {  8 };
-        static constexpr Register16 SS = {  9 };
-        static constexpr Register16 ES = { 10 };
-        static constexpr Register16 FS = { 11 };
-        static constexpr Register16 GS = { 12 };
+        static constexpr Register16 DS{  8 };
+        static constexpr Register16 SS{  9 };
+        static constexpr Register16 ES{ 10 };
+        static constexpr Register16 FS{ 11 };
+        static constexpr Register16 GS{ 12 };
 
-        static constexpr Register16 FLAGS = { 13 };
+        static constexpr Register16 FLAGS{ 13 };
 
         void mov(Register8 reg, uint8_t imm)
         {
