@@ -147,6 +147,26 @@ namespace vx16
 
         static constexpr Register16 FLAGS = { 13 };
 
+        void mov(Register8 reg, uint8_t imm)
+        {
+            m_registers8[reg.m_index] = imm;
+        }
+
+        void mov(Register8 regDst, Register8 regSrc)
+        {
+            m_registers8[regDst.m_index] = m_registers8[regSrc.m_index];
+        }
+
+        void mov(Register16 reg, uint16_t imm)
+        {
+            m_registers16[reg.m_index] = imm;
+        }
+
+        void mov(Register16 regDst, Register16 regSrc)
+        {
+            m_registers16[regDst.m_index] = m_registers16[regSrc.m_index];
+        }
+
     private:
         Memory& m_memory;
 
