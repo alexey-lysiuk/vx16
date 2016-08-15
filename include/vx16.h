@@ -58,12 +58,26 @@ namespace vx16
 
     class CPU
     {
+        struct Register8
+        {
+            uint8_t m_index;
+        };
+
+        struct Register16
+        {
+            uint8_t m_index;
+        };
+
     public:
         explicit CPU(Memory& memory)
         : m_memory(memory)
+        , m_ax(0), m_bx(0), m_cx(0), m_dx(0)
+        , m_bp(0), m_si(0), m_di(0), m_sp(0)
+        , m_ds(m_memory.allocPage())
+        , m_ss(m_memory.allocPage())
+        , m_es(0), m_fs(0), m_gs(0)
+        , m_flags(2)
         {
-            m_ds = m_memory.allocPage();
-            m_ss = m_memory.allocPage();
         }
 
         CPU(const CPU& other)
@@ -106,39 +120,77 @@ namespace vx16
 
         uint16_t flags() const { return m_flags; }
 
+        static constexpr Register8 AL = { 0 };
+        static constexpr Register8 AH = { 1 };
+        static constexpr Register8 BL = { 2 };
+        static constexpr Register8 BH = { 3 };
+        static constexpr Register8 CL = { 4 };
+        static constexpr Register8 CH = { 5 };
+        static constexpr Register8 DL = { 6 };
+        static constexpr Register8 DH = { 7 };
+
+        static constexpr Register16 AX = { 0 };
+        static constexpr Register16 BX = { 1 };
+        static constexpr Register16 CX = { 2 };
+        static constexpr Register16 DX = { 3 };
+
+        static constexpr Register16 BP = { 4 };
+        static constexpr Register16 SI = { 5 };
+        static constexpr Register16 DI = { 6 };
+        static constexpr Register16 SP = { 7 };
+
+        static constexpr Register16 DS = {  8 };
+        static constexpr Register16 SS = {  9 };
+        static constexpr Register16 ES = { 10 };
+        static constexpr Register16 FS = { 11 };
+        static constexpr Register16 GS = { 12 };
+
+        static constexpr Register16 FLAGS = { 13 };
+
     private:
         Memory& m_memory;
 
-#define DEFINE_REGISTER(NAME)     \
-    union                         \
-    {                             \
-        uint16_t m_##NAME##x = 0; \
-        struct                    \
-        {                         \
-            uint8_t m_##NAME##l;  \
-            uint8_t m_##NAME##h;  \
-        };                        \
+        static const size_t REGISTER_COUNT = 14;
+
+        union
+        {
+            struct
+            {
+#define DEFINE_REGISTER(NAME)    \
+    union                        \
+    {                            \
+        uint16_t m_##NAME##x;    \
+        struct                   \
+        {                        \
+            uint8_t m_##NAME##l; \
+            uint8_t m_##NAME##h; \
+        };                       \
     }
 
-        DEFINE_REGISTER(a);
-        DEFINE_REGISTER(b);
-        DEFINE_REGISTER(c);
-        DEFINE_REGISTER(d);
-
-        uint16_t m_bp = 0;
-        uint16_t m_si = 0;
-        uint16_t m_di = 0;
-        uint16_t m_sp = 0;
-
-        uint16_t m_ds;
-        uint16_t m_ss;
-        uint16_t m_es = 0;
-        uint16_t m_fs = 0;
-        uint16_t m_gs = 0;
-
-        uint16_t m_flags = 2;
+                DEFINE_REGISTER(a);
+                DEFINE_REGISTER(b);
+                DEFINE_REGISTER(c);
+                DEFINE_REGISTER(d);
 
 #undef DEFINE_REGISTER
+
+                uint16_t m_bp;
+                uint16_t m_si;
+                uint16_t m_di;
+                uint16_t m_sp;
+
+                uint16_t m_ds;
+                uint16_t m_ss;
+                uint16_t m_es;
+                uint16_t m_fs;
+                uint16_t m_gs;
+
+                uint16_t m_flags;
+            };
+
+            uint8_t  m_registers8 [REGISTER_COUNT * 2];
+            uint16_t m_registers16[REGISTER_COUNT    ];
+        };
     };
 
 } // namespace vx16
