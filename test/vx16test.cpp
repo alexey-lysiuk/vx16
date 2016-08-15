@@ -18,8 +18,42 @@
 
 #include "vx16.h"
 
+#include <cassert>
+
+using namespace vx16;
+
+void testMem(Memory& mem)
+{
+    assert(mem.pageCount() == 0);
+
+    // TODO: ...
+}
+
+void testInit(CPU& cpu)
+{
+    assert(cpu.ax() == 0);
+    assert(cpu.bx() == 0);
+    assert(cpu.cx() == 0);
+    assert(cpu.dx() == 0);
+
+    assert(cpu.bp() == 0);
+    assert(cpu.si() == 0);
+    assert(cpu.di() == 0);
+    assert(cpu.sp() == 0);
+
+    assert(cpu.ds() != cpu.ss());
+    assert(cpu.es() == 0);
+    assert(cpu.fs() == 0);
+    assert(cpu.gs() == 0);
+
+    assert(cpu.flags() == 2);
+}
+
 int main()
 {
-    vx16::Memory mem;
-    vx16::CPU cpu(mem);
+    Memory mem;
+    testMem(mem);
+
+    CPU cpu(mem);
+    testInit(cpu);
 }
