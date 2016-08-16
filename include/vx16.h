@@ -77,29 +77,18 @@ namespace vx16
     class CPU
     {
     public:
-        explicit CPU(Memory& memory)
+        explicit CPU(Memory* memory)
         : m_memory(memory)
         , m_ax(0), m_bx(0), m_cx(0), m_dx(0)
         , m_bp(0), m_si(0), m_di(0), m_sp(0)
-        , m_ds(m_memory.allocPage())
-        , m_ss(m_memory.allocPage())
+        , m_ds(m_memory->allocPage())
+        , m_ss(m_memory->allocPage())
         , m_es(0), m_fs(0), m_gs(0)
         , m_flags(2)
         {
         }
 
-        CPU(const CPU& other)
-        : m_memory(other.m_memory)
-        {
-        }
-
-        CPU(CPU&& other)
-        : m_memory(std::move(other.m_memory))
-        {
-        }
-
-        CPU& operator=(const CPU&) = delete;
-        CPU& operator=(CPU&&) = delete;
+        Memory* memory() const { return m_memory; }
 
         uint8_t al() const { return m_al; }
         uint8_t ah() const { return m_ah; }
@@ -176,7 +165,7 @@ namespace vx16
         }
 
     private:
-        Memory& m_memory;
+        Memory* m_memory;
 
         static const size_t REGISTER_COUNT = 14;
 

@@ -31,6 +31,8 @@ void testMem(Memory& mem)
 
 void testInit(CPU& cpu)
 {
+    assert(cpu.memory()->pageCount() >= 2);
+
     assert(cpu.ax() == 0);
     assert(cpu.bx() == 0);
     assert(cpu.cx() == 0);
@@ -139,7 +141,7 @@ int main()
     Memory mem;
     testMem(mem);
 
-    CPU cpu(mem);
+    CPU cpu(&mem);
     testInit(cpu);
     testMovsImm(cpu);
     testMovsReg(cpu);
