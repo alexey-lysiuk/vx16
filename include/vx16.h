@@ -201,6 +201,32 @@ namespace vx16
             m_registers16[regDst.m_index] = m_registers16[regSrc.m_index];
         }
 
+        template <typename T>
+        void mov(Address address, T imm)
+        {
+            m_memory->set(address, imm);
+        }
+
+        void mov(Address address, Register8 reg)
+        {
+            m_memory->set(address, m_registers8[reg.m_index]);
+        }
+
+        void mov(Address address, Register16 reg)
+        {
+            m_memory->set(address, m_registers16[reg.m_index]);
+        }
+
+        void mov(Register8 reg, Address address)
+        {
+            m_registers8[reg.m_index] = m_memory->get<uint8_t>(address);
+        }
+
+        void mov(Register16 reg, Address address)
+        {
+            m_registers16[reg.m_index] = m_memory->get<uint16_t>(address);
+        }
+
     private:
         Memory* m_memory;
 
