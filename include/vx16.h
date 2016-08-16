@@ -208,6 +208,14 @@ namespace vx16
         word_t fs() const { return m_fs; }
         word_t gs() const { return m_gs; }
 
+        bool cf() const { return m_cf; }
+        bool pf() const { return m_pf; }
+        bool af() const { return m_af; }
+        bool zf() const { return m_zf; }
+        bool sf() const { return m_sf; }
+        bool df() const { return m_df; }
+        bool of() const { return m_of; }
+
         word_t flags() const { return m_flags; }
 
         static constexpr Register8 AL{ 0 };
@@ -401,7 +409,28 @@ namespace vx16
                 word_t m_fs;
                 word_t m_gs;
 
-                word_t m_flags;
+                union
+                {
+                    struct
+                    {
+                        word_t m_cf:1;
+                        word_t m_reserved1:1;
+                        word_t m_pf:1;
+                        word_t m_reserved2:1;
+                        word_t m_af:1;
+                        word_t m_reserved3:1;
+                        word_t m_zf:1;
+                        word_t m_sf:1;
+                        word_t m_tf:1;
+                        word_t m_if:1;
+                        word_t m_df:1;
+                        word_t m_of:1;
+                        word_t m_iopl:2;
+                        word_t m_nt:1;
+                        word_t m_reserved4:1;
+                    };
+                    word_t m_flags;
+                };
             };
 
             byte_t m_registers8 [REGISTER_COUNT * 2];
