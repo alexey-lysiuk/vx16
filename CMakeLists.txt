@@ -7,6 +7,7 @@ set(HEADER_FILES
 )
 
 set(TEST_SOURCE_FILES
+    src/vx16.cpp
     test/vx16test.cpp
 )
 
