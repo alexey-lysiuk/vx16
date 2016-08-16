@@ -26,14 +26,39 @@
 namespace vx16
 {
 
+    struct Address
+    {
+        uint16_t m_segment;
+        uint16_t m_offset;
+    };
+
     class Memory
     {
     public:
         template <typename T>
-        T get(const uint16_t segment, const uint16_t offset) const
+        T get(uint16_t segment, uint16_t offset) const
+        {
+            const Page& page = m_storage[segment];
+            return *reinterpret_cast<const T*>(&page[offset]);
+        }
+
+        template <typename T>
+        T get(Address address) const
+        {
+            return get<T>(address.m_segment, address.m_offset);
+        }
+
+        template <typename T>
+        void set(uint16_t segment, uint16_t offset, T value)
         {
             Page& page = m_storage[segment];
-            return *reinterpret_cast<const T*>(&page[offset]);
+            *reinterpret_cast<T*>(&page[offset]) = value;
+        }
+
+        template <typename T>
+        void set(Address address, T value)
+        {
+            return set(address.m_segment, address.m_offset, value);
         }
 
         uint16_t allocPage()
@@ -89,6 +114,18 @@ namespace vx16
         }
 
         Memory* memory() const { return m_memory; }
+
+        Address address(uint16_t offset) const
+        {
+            Address result = { ds(), offset };
+            return std::move(result);
+        }
+
+        Address address(Register16 reg, uint16_t offset) const
+        {
+            Address result = { m_registers16[reg.m_index], offset };
+            return std::move(result);
+        }
 
         uint8_t al() const { return m_al; }
         uint8_t ah() const { return m_ah; }
