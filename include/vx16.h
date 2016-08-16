@@ -201,6 +201,7 @@ namespace vx16
         word_t di() const { return m_di; }
         word_t sp() const { return m_sp; }
 
+        word_t cs() const { return m_cs; }
         word_t ds() const { return m_ds; }
         word_t ss() const { return m_ss; }
         word_t es() const { return m_es; }
@@ -228,13 +229,12 @@ namespace vx16
         static constexpr Register16 DI{ 6 };
         static constexpr Register16 SP{ 7 };
 
-        static constexpr Register16 DS{  8 };
-        static constexpr Register16 SS{  9 };
-        static constexpr Register16 ES{ 10 };
-        static constexpr Register16 FS{ 11 };
-        static constexpr Register16 GS{ 12 };
-
-        static constexpr Register16 FLAGS{ 13 };
+        static constexpr Register16 CS{  8 };
+        static constexpr Register16 DS{  9 };
+        static constexpr Register16 SS{ 10 };
+        static constexpr Register16 ES{ 11 };
+        static constexpr Register16 FS{ 12 };
+        static constexpr Register16 GS{ 13 };
 
         void mov(Register8 reg, byte_t imm)
         {
@@ -365,7 +365,7 @@ namespace vx16
     private:
         Memory* m_memory;
 
-        static const size_t REGISTER_COUNT = 14;
+        static const size_t REGISTER_COUNT = 15;
 
         union
         {
@@ -394,6 +394,7 @@ namespace vx16
                 word_t m_di;
                 word_t m_sp;
 
+                word_t m_cs;
                 word_t m_ds;
                 word_t m_ss;
                 word_t m_es;
