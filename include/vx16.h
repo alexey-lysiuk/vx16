@@ -26,17 +26,20 @@
 namespace vx16
 {
 
+    typedef uint8_t byte_t;
+    typedef uint16_t word_t;
+
     struct Address
     {
-        uint16_t m_segment;
-        uint16_t m_offset;
+        word_t m_segment;
+        word_t m_offset;
     };
 
     class Memory
     {
     public:
         template <typename T>
-        T get(uint16_t segment, uint16_t offset) const
+        T get(word_t segment, word_t offset) const
         {
             const Page& page = m_storage[segment];
             return *reinterpret_cast<const T*>(&page[offset]);
@@ -49,7 +52,7 @@ namespace vx16
         }
 
         template <typename T>
-        void set(uint16_t segment, uint16_t offset, T value)
+        void set(word_t segment, word_t offset, T value)
         {
             Page& page = m_storage[segment];
             *reinterpret_cast<T*>(&page[offset]) = value;
@@ -61,37 +64,37 @@ namespace vx16
             return set(address.m_segment, address.m_offset, value);
         }
 
-        uint16_t allocPage()
+        word_t allocPage()
         {
             m_storage.emplace_back();
             return pageCount() - 1;
         }
 
-        uint16_t pageCount() const
+        word_t pageCount() const
         {
-            return static_cast<uint16_t>(m_storage.size());
+            return static_cast<word_t>(m_storage.size());
         }
 
     private:
         static const size_t PAGE_SIZE = 64 * 1024;
 
-        typedef std::array<uint8_t, PAGE_SIZE> Page;
+        typedef std::array<byte_t, PAGE_SIZE> Page;
         typedef std::vector<Page> Storage;
 
         Storage m_storage;
     };
 
-#define DEFINE_REGISTER_CLASS(SIZE)             \
-    class Register##SIZE                        \
-    {                                           \
-        friend class CPU;                       \
-                                                \
-        constexpr Register##SIZE(uint8_t index) \
-        : m_index(index)                        \
-        {                                       \
-        }                                       \
-                                                \
-        uint8_t m_index;                        \
+#define DEFINE_REGISTER_CLASS(SIZE)            \
+    class Register##SIZE                       \
+    {                                          \
+        friend class CPU;                      \
+                                               \
+        constexpr Register##SIZE(byte_t index) \
+        : m_index(index)                       \
+        {                                      \
+        }                                      \
+                                               \
+        byte_t m_index;                        \
     }
 
     DEFINE_REGISTER_CLASS(8);
@@ -115,44 +118,44 @@ namespace vx16
 
         Memory* memory() const { return m_memory; }
 
-        Address address(uint16_t offset) const
+        Address address(word_t offset) const
         {
             Address result = { ds(), offset };
             return std::move(result);
         }
 
-        Address address(Register16 reg, uint16_t offset) const
+        Address address(Register16 reg, word_t offset) const
         {
             Address result = { m_registers16[reg.m_index], offset };
             return std::move(result);
         }
 
-        uint8_t al() const { return m_al; }
-        uint8_t ah() const { return m_ah; }
-        uint8_t bl() const { return m_bl; }
-        uint8_t bh() const { return m_bh; }
-        uint8_t cl() const { return m_cl; }
-        uint8_t ch() const { return m_ch; }
-        uint8_t dl() const { return m_dl; }
-        uint8_t dh() const { return m_dh; }
+        byte_t al() const { return m_al; }
+        byte_t ah() const { return m_ah; }
+        byte_t bl() const { return m_bl; }
+        byte_t bh() const { return m_bh; }
+        byte_t cl() const { return m_cl; }
+        byte_t ch() const { return m_ch; }
+        byte_t dl() const { return m_dl; }
+        byte_t dh() const { return m_dh; }
 
-        uint16_t ax() const { return m_ax; }
-        uint16_t bx() const { return m_bx; }
-        uint16_t cx() const { return m_cx; }
-        uint16_t dx() const { return m_dx; }
+        word_t ax() const { return m_ax; }
+        word_t bx() const { return m_bx; }
+        word_t cx() const { return m_cx; }
+        word_t dx() const { return m_dx; }
 
-        uint16_t bp() const { return m_bp; }
-        uint16_t si() const { return m_si; }
-        uint16_t di() const { return m_di; }
-        uint16_t sp() const { return m_sp; }
+        word_t bp() const { return m_bp; }
+        word_t si() const { return m_si; }
+        word_t di() const { return m_di; }
+        word_t sp() const { return m_sp; }
 
-        uint16_t ds() const { return m_ds; }
-        uint16_t ss() const { return m_ss; }
-        uint16_t es() const { return m_es; }
-        uint16_t fs() const { return m_fs; }
-        uint16_t gs() const { return m_gs; }
+        word_t ds() const { return m_ds; }
+        word_t ss() const { return m_ss; }
+        word_t es() const { return m_es; }
+        word_t fs() const { return m_fs; }
+        word_t gs() const { return m_gs; }
 
-        uint16_t flags() const { return m_flags; }
+        word_t flags() const { return m_flags; }
 
         static constexpr Register8 AL{ 0 };
         static constexpr Register8 AH{ 1 };
@@ -181,7 +184,7 @@ namespace vx16
 
         static constexpr Register16 FLAGS{ 13 };
 
-        void mov(Register8 reg, uint8_t imm)
+        void mov(Register8 reg, byte_t imm)
         {
             m_registers8[reg.m_index] = imm;
         }
@@ -191,7 +194,7 @@ namespace vx16
             m_registers8[regDst.m_index] = m_registers8[regSrc.m_index];
         }
 
-        void mov(Register16 reg, uint16_t imm)
+        void mov(Register16 reg, word_t imm)
         {
             m_registers16[reg.m_index] = imm;
         }
@@ -219,12 +222,12 @@ namespace vx16
 
         void mov(Register8 reg, Address address)
         {
-            m_registers8[reg.m_index] = m_memory->get<uint8_t>(address);
+            m_registers8[reg.m_index] = m_memory->get<byte_t>(address);
         }
 
         void mov(Register16 reg, Address address)
         {
-            m_registers16[reg.m_index] = m_memory->get<uint16_t>(address);
+            m_registers16[reg.m_index] = m_memory->get<word_t>(address);
         }
 
     private:
@@ -236,15 +239,15 @@ namespace vx16
         {
             struct
             {
-#define DEFINE_REGISTER(NAME)    \
-    union                        \
-    {                            \
-        uint16_t m_##NAME##x;    \
-        struct                   \
-        {                        \
-            uint8_t m_##NAME##l; \
-            uint8_t m_##NAME##h; \
-        };                       \
+#define DEFINE_REGISTER(NAME)   \
+    union                       \
+    {                           \
+        word_t m_##NAME##x;     \
+        struct                  \
+        {                       \
+            byte_t m_##NAME##l; \
+            byte_t m_##NAME##h; \
+        };                      \
     }
 
                 DEFINE_REGISTER(a);
@@ -254,22 +257,22 @@ namespace vx16
 
 #undef DEFINE_REGISTER
 
-                uint16_t m_bp;
-                uint16_t m_si;
-                uint16_t m_di;
-                uint16_t m_sp;
+                word_t m_bp;
+                word_t m_si;
+                word_t m_di;
+                word_t m_sp;
 
-                uint16_t m_ds;
-                uint16_t m_ss;
-                uint16_t m_es;
-                uint16_t m_fs;
-                uint16_t m_gs;
+                word_t m_ds;
+                word_t m_ss;
+                word_t m_es;
+                word_t m_fs;
+                word_t m_gs;
 
-                uint16_t m_flags;
+                word_t m_flags;
             };
 
-            uint8_t  m_registers8 [REGISTER_COUNT * 2];
-            uint16_t m_registers16[REGISTER_COUNT    ];
+            byte_t m_registers8 [REGISTER_COUNT * 2];
+            word_t m_registers16[REGISTER_COUNT    ];
         };
     };
 
