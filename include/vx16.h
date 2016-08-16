@@ -29,7 +29,23 @@ namespace vx16
     typedef uint8_t byte_t;
     typedef uint16_t word_t;
 
-    struct Address
+    struct NearBytePtr
+    {
+        word_t m_offset;
+    };
+
+    struct FarBytePtr
+    {
+        word_t m_segment;
+        word_t m_offset;
+    };
+
+    struct NearWordPtr
+    {
+        word_t m_offset;
+    };
+
+    struct FarWordPtr
     {
         word_t m_segment;
         word_t m_offset;
@@ -38,6 +54,26 @@ namespace vx16
     class Memory
     {
     public:
+        byte_t get(FarBytePtr address) const
+        {
+            return get<byte_t>(address.m_segment, address.m_offset);
+        }
+
+        void set(FarBytePtr address, byte_t value)
+        {
+            set(address.m_segment, address.m_offset, value);
+        }
+
+        word_t get(FarWordPtr address) const
+        {
+            return get<word_t>(address.m_segment, address.m_offset);
+        }
+
+        void set(FarWordPtr address, word_t value)
+        {
+            set(address.m_segment, address.m_offset, value);
+        }
+
         template <typename T>
         T get(word_t segment, word_t offset) const
         {
@@ -46,22 +82,10 @@ namespace vx16
         }
 
         template <typename T>
-        T get(Address address) const
-        {
-            return get<T>(address.m_segment, address.m_offset);
-        }
-
-        template <typename T>
         void set(word_t segment, word_t offset, T value)
         {
             Page& page = m_storage[segment];
             *reinterpret_cast<T*>(&page[offset]) = value;
-        }
-
-        template <typename T>
-        void set(Address address, T value)
-        {
-            return set(address.m_segment, address.m_offset, value);
         }
 
         word_t allocPage()
@@ -118,16 +142,44 @@ namespace vx16
 
         Memory* memory() const { return m_memory; }
 
-        Address address(word_t offset) const
+        FarBytePtr bytePtr(word_t offset) const
         {
-            Address result = { ds(), offset };
-            return std::move(result);
+            return bytePtr(DS, offset);
         }
 
-        Address address(Register16 reg, word_t offset) const
+        FarBytePtr bytePtr(NearBytePtr address) const
         {
-            Address result = { m_registers16[reg.m_index], offset };
-            return std::move(result);
+            return bytePtr(address.m_offset);
+        }
+
+        FarBytePtr bytePtr(Register16 segment, word_t offset) const
+        {
+            return FarBytePtr{ m_registers16[segment.m_index], offset };
+        }
+
+        FarBytePtr bytePtr(Register16 segment, NearBytePtr address) const
+        {
+            return bytePtr(segment, address.m_offset);
+        }
+        
+        FarWordPtr wordPtr(word_t offset) const
+        {
+            return wordPtr(DS, offset);
+        }
+
+        FarWordPtr wordPtr(NearWordPtr address) const
+        {
+            return wordPtr(address.m_offset);
+        }
+
+        FarWordPtr wordPtr(Register16 segment, word_t offset) const
+        {
+            return FarWordPtr{ m_registers16[segment.m_index], offset };
+        }
+
+        FarWordPtr wordPtr(Register16 segment, NearWordPtr address) const
+        {
+            return wordPtr(segment, address.m_offset);
         }
 
         byte_t al() const { return m_al; }
@@ -204,30 +256,64 @@ namespace vx16
             m_registers16[regDst.m_index] = m_registers16[regSrc.m_index];
         }
 
-        template <typename T>
-        void mov(Address address, T imm)
+        void mov(NearBytePtr address, byte_t imm)
+        {
+            m_memory->set(bytePtr(address), imm);
+        }
+
+        void mov(NearWordPtr address, word_t imm)
+        {
+            m_memory->set(wordPtr(address), imm);
+        }
+
+        void mov(NearBytePtr address, Register8 reg)
+        {
+            m_memory->set(bytePtr(address), m_registers8[reg.m_index]);
+        }
+
+        void mov(NearWordPtr address, Register16 reg)
+        {
+            m_memory->set(wordPtr(address), m_registers16[reg.m_index]);
+        }
+
+        void mov(Register8 reg, NearBytePtr address)
+        {
+            m_registers8[reg.m_index] = m_memory->get(bytePtr(address));
+        }
+
+        void mov(Register16 reg, NearWordPtr address)
+        {
+            m_registers16[reg.m_index] = m_memory->get(wordPtr(address));
+        }
+
+        void mov(FarBytePtr address, byte_t imm)
         {
             m_memory->set(address, imm);
         }
 
-        void mov(Address address, Register8 reg)
+        void mov(FarWordPtr address, word_t imm)
+        {
+            m_memory->set(address, imm);
+        }
+
+        void mov(FarBytePtr address, Register8 reg)
         {
             m_memory->set(address, m_registers8[reg.m_index]);
         }
 
-        void mov(Address address, Register16 reg)
+        void mov(FarWordPtr address, Register16 reg)
         {
             m_memory->set(address, m_registers16[reg.m_index]);
         }
 
-        void mov(Register8 reg, Address address)
+        void mov(Register8 reg, FarBytePtr address)
         {
-            m_registers8[reg.m_index] = m_memory->get<byte_t>(address);
+            m_registers8[reg.m_index] = m_memory->get(address);
         }
 
-        void mov(Register16 reg, Address address)
+        void mov(Register16 reg, FarWordPtr address)
         {
-            m_registers16[reg.m_index] = m_memory->get<word_t>(address);
+            m_registers16[reg.m_index] = m_memory->get(address);
         }
 
     private:

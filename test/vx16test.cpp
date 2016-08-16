@@ -138,25 +138,25 @@ void testMovsReg(CPU& cpu)
 
 void testMovsMem(CPU& cpu, Memory& mem)
 {
-    cpu.mov(cpu.address(0x10), 0x1234);
+    cpu.mov(cpu.wordPtr(0x10), 0x1234);
     assert(mem.get<uint16_t>(cpu.ds(), 0x10) == 0x1234);
 
-    cpu.mov(cpu.address(CPU::DS, 0x11), 0x89);
+    cpu.mov(cpu.bytePtr(CPU::DS, 0x11), 0x89);
     assert(mem.get<uint8_t>(cpu.ds(), 0x11) == 0x89);
     assert(mem.get<uint16_t>(cpu.ds(), 0x10) == 0x8934);
 
     cpu.mov(CPU::AX, 0xABCD);
-    cpu.mov(cpu.address(0x20), CPU::AX);
+    cpu.mov(cpu.wordPtr(0x20), CPU::AX);
     assert(mem.get<uint16_t>(cpu.ds(), 0x20) == 0xABCD);
 
-    cpu.mov(CPU::BX, cpu.address(0x20));
+    cpu.mov(CPU::BX, cpu.wordPtr(0x20));
     assert(cpu.bx() == 0xABCD);
 
     cpu.mov(CPU::ES, mem.allocPage());
     assert(cpu.ds() != cpu.es());
     assert(cpu.ss() != cpu.es());
 
-    cpu.mov(cpu.address(CPU::ES, 0x30), 0xEFCD);
+    cpu.mov(cpu.wordPtr(CPU::ES, 0x30), 0xEFCD);
     assert(mem.get<uint16_t>(cpu.es(), 0x30) == 0xEFCD);
 
     cpu.mov(CPU::FS, cpu.es());
