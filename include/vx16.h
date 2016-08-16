@@ -316,6 +316,52 @@ namespace vx16
             m_registers16[reg.m_index] = m_memory->get(address);
         }
 
+        void push(word_t imm)
+        {
+            m_sp -= 2;
+            m_memory->set(m_ss, m_sp, imm);
+        }
+
+        void push(Register16 reg)
+        {
+            word_t value = m_registers16[reg.m_index];
+            push(value);
+        }
+
+        void push(NearWordPtr address)
+        {
+            word_t value = m_memory->get<word_t>(m_ds, address.m_offset);
+            push(value);
+        }
+
+        void push(FarWordPtr address)
+        {
+            word_t value = m_memory->get(address);
+            push(value);
+        }
+
+        word_t pop()
+        {
+            word_t value = m_memory->get<word_t>(m_ss, m_sp);
+            m_sp += 2;
+            return value;
+        }
+
+        void pop(Register16 reg)
+        {
+            m_registers16[reg.m_index] = pop();
+        }
+
+        void pop(NearWordPtr address)
+        {
+            m_memory->set(m_ds, address.m_offset, pop());
+        }
+
+        void pop(FarWordPtr address)
+        {
+            m_memory->set(address, pop());
+        }
+
     private:
         Memory* m_memory;
 
