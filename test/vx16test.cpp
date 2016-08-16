@@ -165,6 +165,46 @@ void testMovsMem(CPU& cpu, Memory& mem)
     assert(mem.get<byte_t>(cpu.fs(), 0x31) == 0xEF);
 }
 
+void testPushPop(CPU& cpu, Memory& mem)
+{
+    cpu.mov(CPU::SP, 0x1000);
+    cpu.mov(CPU::AX, CPU::SP);
+
+    cpu.push(765);
+    assert(cpu.sp() + 2 == cpu.ax());
+    assert(mem.get<word_t>(cpu.ss(), cpu.sp()) == 765);
+
+    cpu.push(0xCCEE);
+    assert(cpu.sp() + 4 == cpu.ax());
+    assert(mem.get<word_t>(cpu.ss(), cpu.sp()) == 0xCCEE);
+
+    cpu.mov(cpu.wordPtr(0x100), 0x5775);
+    cpu.push(cpu.wordPtr(0x100));
+    assert(cpu.sp() + 6 == cpu.ax());
+    assert(mem.get<word_t>(cpu.ss(), cpu.sp()) == 0x5775);
+
+    cpu.mov(cpu.wordPtr(CPU::ES, 0x10), 0xFEDC);
+    cpu.push(cpu.wordPtr(CPU::ES, 0x10));
+    assert(cpu.sp() + 8 == cpu.ax());
+    assert(mem.get<word_t>(cpu.ss(), cpu.sp()) == 0xFEDC);
+
+    cpu.pop(cpu.wordPtr(0x102));
+    assert(cpu.sp() + 6 == cpu.ax());
+    assert(mem.get<word_t>(cpu.ds(), 0x102) == 0xFEDC);
+
+    cpu.pop(cpu.wordPtr(CPU::ES, 0x1020));
+    assert(cpu.sp() + 4 == cpu.ax());
+    assert(mem.get<word_t>(cpu.es(), 0x1020) == 0x5775);
+
+    cpu.pop(CPU::BX);
+    assert(cpu.sp() + 2 == cpu.ax());
+    assert(cpu.bx() == 0xCCEE);
+
+    cpu.pop(CPU::CX);
+    assert(cpu.sp() == cpu.ax());
+    assert(cpu.cx() == 765);
+}
+
 int main()
 {
     Memory mem;
@@ -175,4 +215,5 @@ int main()
     testMovsImm(cpu);
     testMovsReg(cpu);
     testMovsMem(cpu, mem);
+    testPushPop(cpu, mem);
 }
