@@ -139,15 +139,15 @@ void testMovsReg(CPU& cpu)
 void testMovsMem(CPU& cpu, Memory& mem)
 {
     cpu.mov(cpu.wordPtr(0x10), 0x1234);
-    assert(mem.get<uint16_t>(cpu.ds(), 0x10) == 0x1234);
+    assert(mem.get<word_t>(cpu.ds(), 0x10) == 0x1234);
 
     cpu.mov(cpu.bytePtr(CPU::DS, 0x11), 0x89);
-    assert(mem.get<uint8_t>(cpu.ds(), 0x11) == 0x89);
-    assert(mem.get<uint16_t>(cpu.ds(), 0x10) == 0x8934);
+    assert(mem.get<byte_t>(cpu.ds(), 0x11) == 0x89);
+    assert(mem.get<word_t>(cpu.ds(), 0x10) == 0x8934);
 
     cpu.mov(CPU::AX, 0xABCD);
     cpu.mov(cpu.wordPtr(0x20), CPU::AX);
-    assert(mem.get<uint16_t>(cpu.ds(), 0x20) == 0xABCD);
+    assert(mem.get<word_t>(cpu.ds(), 0x20) == 0xABCD);
 
     cpu.mov(CPU::BX, cpu.wordPtr(0x20));
     assert(cpu.bx() == 0xABCD);
@@ -157,12 +157,12 @@ void testMovsMem(CPU& cpu, Memory& mem)
     assert(cpu.ss() != cpu.es());
 
     cpu.mov(cpu.wordPtr(CPU::ES, 0x30), 0xEFCD);
-    assert(mem.get<uint16_t>(cpu.es(), 0x30) == 0xEFCD);
+    assert(mem.get<word_t>(cpu.es(), 0x30) == 0xEFCD);
 
     cpu.mov(CPU::FS, cpu.es());
     assert(cpu.es() == cpu.fs());
-    assert(mem.get<uint8_t>(cpu.fs(), 0x30) == 0xCD);
-    assert(mem.get<uint8_t>(cpu.fs(), 0x31) == 0xEF);
+    assert(mem.get<byte_t>(cpu.fs(), 0x30) == 0xCD);
+    assert(mem.get<byte_t>(cpu.fs(), 0x31) == 0xEF);
 }
 
 int main()
