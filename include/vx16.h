@@ -370,6 +370,31 @@ namespace vx16
             m_memory->set(address, pop());
         }
 
+        void pusha()
+        {
+            word_t sp = m_sp;
+            push(AX);
+            push(CX);
+            push(DX);
+            push(BX);
+            push(sp);
+            push(BP);
+            push(SI);
+            push(DI);
+        }
+
+        void popa()
+        {
+            pop(DI);
+            pop(SI);
+            pop(BP);
+            m_sp += 2;
+            pop(BX);
+            pop(DX);
+            pop(CX);
+            pop(AX);
+        }
+
     private:
         Memory* m_memory;
 
