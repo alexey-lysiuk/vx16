@@ -109,23 +109,41 @@ namespace vx16
         Storage m_storage;
     };
 
-#define DEFINE_REGISTER_CLASS(SIZE)            \
-    class Register##SIZE                       \
-    {                                          \
-        friend class CPU;                      \
-                                               \
-        constexpr Register##SIZE(byte_t index) \
-        : m_index(index)                       \
-        {                                      \
-        }                                      \
-                                               \
-        byte_t m_index;                        \
-    }
+    enum class R8 : byte_t
+    {
+        AL = 0,
+        AH = 1,
+        BL = 2,
+        BH = 3,
+        CL = 4,
+        CH = 5,
+        DL = 6,
+        DH = 7
+    };
 
-    DEFINE_REGISTER_CLASS(8);
-    DEFINE_REGISTER_CLASS(16);
+    enum class R16 : byte_t
+    {
+        AX = 0,
+        BX = 1,
+        CX = 2,
+        DX = 3,
 
-#undef DEFINE_REGISTER_CLASS
+        BP = 4,
+        SI = 5,
+        DI = 6,
+        SP = 7,
+
+        CS = 8,
+        DS = 9,
+        SS = 10,
+        ES = 11,
+        FS = 12,
+        GS = 13,
+
+        FLAGS = 14,
+
+        COUNT
+    };
 
     class CPU
     {
@@ -134,6 +152,7 @@ namespace vx16
         : m_memory(memory)
         , m_ax(0), m_bx(0), m_cx(0), m_dx(0)
         , m_bp(0), m_si(0), m_di(0), m_sp(0)
+        , m_cs(0)
         , m_ds(m_memory->allocPage())
         , m_ss(m_memory->allocPage())
         , m_es(0), m_fs(0), m_gs(0)
@@ -143,9 +162,21 @@ namespace vx16
 
         Memory* memory() const { return m_memory; }
 
+        byte_t value(R8 reg) const
+        {
+            const size_t index = static_cast<size_t>(reg);
+            return m_registers8[index];
+        }
+
+        word_t value(R16 reg) const
+        {
+            const size_t index = static_cast<size_t>(reg);
+            return m_registers16[index];
+        }
+
         FarBytePtr bytePtr(word_t offset) const
         {
-            return bytePtr(DS, offset);
+            return bytePtr(R16::DS, offset);
         }
 
         FarBytePtr bytePtr(NearBytePtr address) const
@@ -153,19 +184,19 @@ namespace vx16
             return bytePtr(address.m_offset);
         }
 
-        FarBytePtr bytePtr(Register16 segment, word_t offset) const
+        FarBytePtr bytePtr(R16 segment, word_t offset) const
         {
-            return FarBytePtr{ m_registers16[segment.m_index], offset };
+            return FarBytePtr{ value(segment), offset };
         }
 
-        FarBytePtr bytePtr(Register16 segment, NearBytePtr address) const
+        FarBytePtr bytePtr(R16 segment, NearBytePtr address) const
         {
             return bytePtr(segment, address.m_offset);
         }
         
         FarWordPtr wordPtr(word_t offset) const
         {
-            return wordPtr(DS, offset);
+            return wordPtr(R16::DS, offset);
         }
 
         FarWordPtr wordPtr(NearWordPtr address) const
@@ -173,12 +204,12 @@ namespace vx16
             return wordPtr(address.m_offset);
         }
 
-        FarWordPtr wordPtr(Register16 segment, word_t offset) const
+        FarWordPtr wordPtr(R16 segment, word_t offset) const
         {
-            return FarWordPtr{ m_registers16[segment.m_index], offset };
+            return FarWordPtr{ value(segment), offset };
         }
 
-        FarWordPtr wordPtr(Register16 segment, NearWordPtr address) const
+        FarWordPtr wordPtr(R16 segment, NearWordPtr address) const
         {
             return wordPtr(segment, address.m_offset);
         }
@@ -219,50 +250,24 @@ namespace vx16
 
         word_t flags() const { return m_flags; }
 
-        static constexpr Register8 AL{ 0 };
-        static constexpr Register8 AH{ 1 };
-        static constexpr Register8 BL{ 2 };
-        static constexpr Register8 BH{ 3 };
-        static constexpr Register8 CL{ 4 };
-        static constexpr Register8 CH{ 5 };
-        static constexpr Register8 DL{ 6 };
-        static constexpr Register8 DH{ 7 };
-
-        static constexpr Register16 AX{ 0 };
-        static constexpr Register16 BX{ 1 };
-        static constexpr Register16 CX{ 2 };
-        static constexpr Register16 DX{ 3 };
-
-        static constexpr Register16 BP{ 4 };
-        static constexpr Register16 SI{ 5 };
-        static constexpr Register16 DI{ 6 };
-        static constexpr Register16 SP{ 7 };
-
-        static constexpr Register16 CS{  8 };
-        static constexpr Register16 DS{  9 };
-        static constexpr Register16 SS{ 10 };
-        static constexpr Register16 ES{ 11 };
-        static constexpr Register16 FS{ 12 };
-        static constexpr Register16 GS{ 13 };
-
-        void mov(Register8 reg, byte_t imm)
+        void mov(R8 reg, byte_t imm)
         {
-            m_registers8[reg.m_index] = imm;
+            setValue(reg, imm);
         }
 
-        void mov(Register8 regDst, Register8 regSrc)
+        void mov(R8 regDst, R8 regSrc)
         {
-            m_registers8[regDst.m_index] = m_registers8[regSrc.m_index];
+            setValue(regDst, value(regSrc));
         }
 
-        void mov(Register16 reg, word_t imm)
+        void mov(R16 reg, word_t imm)
         {
-            m_registers16[reg.m_index] = imm;
+            setValue(reg, imm);
         }
 
-        void mov(Register16 regDst, Register16 regSrc)
+        void mov(R16 regDst, R16 regSrc)
         {
-            m_registers16[regDst.m_index] = m_registers16[regSrc.m_index];
+            setValue(regDst, value(regSrc));
         }
 
         void mov(NearBytePtr address, byte_t imm)
@@ -275,24 +280,26 @@ namespace vx16
             m_memory->set(wordPtr(address), imm);
         }
 
-        void mov(NearBytePtr address, Register8 reg)
+        void mov(NearBytePtr address, R8 reg)
         {
-            m_memory->set(bytePtr(address), m_registers8[reg.m_index]);
+            m_memory->set(bytePtr(address), value(reg));
         }
 
-        void mov(NearWordPtr address, Register16 reg)
+        void mov(NearWordPtr address, R16 reg)
         {
-            m_memory->set(wordPtr(address), m_registers16[reg.m_index]);
+            m_memory->set(wordPtr(address), value(reg));
         }
 
-        void mov(Register8 reg, NearBytePtr address)
+        void mov(R8 reg, NearBytePtr address)
         {
-            m_registers8[reg.m_index] = m_memory->get(bytePtr(address));
+            const byte_t value = m_memory->get(bytePtr(address));
+            setValue(reg, value);
         }
 
-        void mov(Register16 reg, NearWordPtr address)
+        void mov(R16 reg, NearWordPtr address)
         {
-            m_registers16[reg.m_index] = m_memory->get(wordPtr(address));
+            const word_t value = m_memory->get(wordPtr(address));
+            setValue(reg, value);
         }
 
         void mov(FarBytePtr address, byte_t imm)
@@ -305,24 +312,24 @@ namespace vx16
             m_memory->set(address, imm);
         }
 
-        void mov(FarBytePtr address, Register8 reg)
+        void mov(FarBytePtr address, R8 reg)
         {
-            m_memory->set(address, m_registers8[reg.m_index]);
+            m_memory->set(address, value(reg));
         }
 
-        void mov(FarWordPtr address, Register16 reg)
+        void mov(FarWordPtr address, R16 reg)
         {
-            m_memory->set(address, m_registers16[reg.m_index]);
+            m_memory->set(address, value(reg));
         }
 
-        void mov(Register8 reg, FarBytePtr address)
+        void mov(R8 reg, FarBytePtr address)
         {
-            m_registers8[reg.m_index] = m_memory->get(address);
+            setValue(reg, m_memory->get(address));
         }
 
-        void mov(Register16 reg, FarWordPtr address)
+        void mov(R16 reg, FarWordPtr address)
         {
-            m_registers16[reg.m_index] = m_memory->get(address);
+            setValue(reg, m_memory->get(address));
         }
 
         void push(word_t imm)
@@ -331,34 +338,33 @@ namespace vx16
             m_memory->set(m_ss, m_sp, imm);
         }
 
-        void push(Register16 reg)
+        void push(R16 reg)
         {
-            word_t value = m_registers16[reg.m_index];
-            push(value);
+            push(value(reg));
         }
 
         void push(NearWordPtr address)
         {
-            word_t value = m_memory->get<word_t>(m_ds, address.m_offset);
+            const word_t value = m_memory->get<word_t>(m_ds, address.m_offset);
             push(value);
         }
 
         void push(FarWordPtr address)
         {
-            word_t value = m_memory->get(address);
+            const word_t value = m_memory->get(address);
             push(value);
         }
 
         word_t pop()
         {
-            word_t value = m_memory->get<word_t>(m_ss, m_sp);
+            const word_t value = m_memory->get<word_t>(m_ss, m_sp);
             m_sp += 2;
             return value;
         }
 
-        void pop(Register16 reg)
+        void pop(R16 reg)
         {
-            m_registers16[reg.m_index] = pop();
+            setValue(reg, pop());
         }
 
         void pop(NearWordPtr address)
@@ -373,33 +379,33 @@ namespace vx16
 
         void pusha()
         {
-            word_t sp = m_sp;
-            push(AX);
-            push(CX);
-            push(DX);
-            push(BX);
+            const word_t sp = m_sp;
+            push(m_ax);
+            push(m_cx);
+            push(m_dx);
+            push(m_bx);
             push(sp);
-            push(BP);
-            push(SI);
-            push(DI);
+            push(m_bp);
+            push(m_si);
+            push(m_di);
         }
 
         void popa()
         {
-            pop(DI);
-            pop(SI);
-            pop(BP);
+            m_di = pop();
+            m_si = pop();
+            m_bp = pop();
             m_sp += 2;
-            pop(BX);
-            pop(DX);
-            pop(CX);
-            pop(AX);
+            m_bx = pop();
+            m_dx = pop();
+            m_cx = pop();
+            m_ax = pop();
         }
 
         void enter(word_t size, word_t nesting)
         {
             assert(0 == nesting && "nesting is not supported yet");
-            push(BP);
+            push(m_bp);
             m_bp = m_sp;
             m_sp -= size;
         }
@@ -407,35 +413,35 @@ namespace vx16
         void leave()
         {
             m_sp = m_bp;
-            pop(BP);
+            m_bp = pop();
         }
 
     private:
         Memory* m_memory;
 
-        static const size_t REGISTER_COUNT = 15;
+        static const size_t REGISTER_COUNT = size_t(R16::COUNT);
 
         union
         {
             struct
             {
-#define DEFINE_REGISTER(NAME)   \
-    union                       \
-    {                           \
-        word_t m_##NAME##x;     \
-        struct                  \
-        {                       \
-            byte_t m_##NAME##l; \
-            byte_t m_##NAME##h; \
-        };                      \
+#define VX16_DEFINE_REGISTER(NAME) \
+    union                          \
+    {                              \
+        word_t m_##NAME##x;        \
+        struct                     \
+        {                          \
+            byte_t m_##NAME##l;    \
+            byte_t m_##NAME##h;    \
+        };                         \
     }
 
-                DEFINE_REGISTER(a);
-                DEFINE_REGISTER(b);
-                DEFINE_REGISTER(c);
-                DEFINE_REGISTER(d);
+                VX16_DEFINE_REGISTER(a);
+                VX16_DEFINE_REGISTER(b);
+                VX16_DEFINE_REGISTER(c);
+                VX16_DEFINE_REGISTER(d);
 
-#undef DEFINE_REGISTER
+#undef VX16_DEFINE_REGISTER
 
                 word_t m_bp;
                 word_t m_si;
@@ -476,6 +482,19 @@ namespace vx16
             byte_t m_registers8 [REGISTER_COUNT * 2];
             word_t m_registers16[REGISTER_COUNT    ];
         };
+
+        void setValue(R8 reg, byte_t value)
+        {
+            const size_t index = static_cast<size_t>(reg);
+            m_registers8[index] = value;
+        }
+
+        void setValue(R16 reg, word_t value)
+        {
+            const size_t index = static_cast<size_t>(reg);
+            m_registers16[index] = value;
+        }
+
     };
 
 } // namespace vx16

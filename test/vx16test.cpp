@@ -53,86 +53,86 @@ void testInit(CPU& cpu)
 
 void testMovsImm(CPU& cpu)
 {
-    cpu.mov(CPU::AL, 16);
+    cpu.mov(R8::AL, 16);
     assert(cpu.al() == 16);
 
-    cpu.mov(CPU::AH, 32);
+    cpu.mov(R8::AH, 32);
     assert(cpu.ah() == 32);
     assert(cpu.ax() == 0x2010);
 
-    cpu.mov(CPU::BL, 111);
+    cpu.mov(R8::BL, 111);
     assert(cpu.bl() == 111);
 
-    cpu.mov(CPU::BH, 222);
+    cpu.mov(R8::BH, 222);
     assert(cpu.bh() == 222);
     assert(cpu.bx() == 0xDE6F);
 
-    cpu.mov(CPU::CL, 0xEE);
+    cpu.mov(R8::CL, 0xEE);
     assert(cpu.cl() == 0xEE);
 
-    cpu.mov(CPU::CH, 0xFF);
+    cpu.mov(R8::CH, 0xFF);
     assert(cpu.ch() == 0xFF);
     assert(cpu.cx() == 0xFFEE);
 
-    cpu.mov(CPU::DL, 0xCC);
+    cpu.mov(R8::DL, 0xCC);
     assert(cpu.dl() == 0xCC);
 
-    cpu.mov(CPU::DH, 0xAA);
+    cpu.mov(R8::DH, 0xAA);
     assert(cpu.dh() == 0xAA);
     assert(cpu.dx() == 0xAACC);
 
-    cpu.mov(CPU::AX, 0x1234);
+    cpu.mov(R16::AX, 0x1234);
     assert(cpu.ax() == 0x1234);
 
-    cpu.mov(CPU::BX, 0x4321);
+    cpu.mov(R16::BX, 0x4321);
     assert(cpu.bx() == 0x4321);
 
-    cpu.mov(CPU::CX, 0x1001);
+    cpu.mov(R16::CX, 0x1001);
     assert(cpu.cx() == 0x1001);
 
-    cpu.mov(CPU::DX, 0xFFFF);
+    cpu.mov(R16::DX, 0xFFFF);
     assert(cpu.dx() == 0xFFFF);
 
-    cpu.mov(CPU::BP, 0x1111);
+    cpu.mov(R16::BP, 0x1111);
     assert(cpu.bp() == 0x1111);
 
-    cpu.mov(CPU::SI, 0x2727);
+    cpu.mov(R16::SI, 0x2727);
     assert(cpu.si() == 0x2727);
 
-    cpu.mov(CPU::DI, 0x6789);
+    cpu.mov(R16::DI, 0x6789);
     assert(cpu.di() == 0x6789);
 
-    cpu.mov(CPU::SP, 0xABCD);
+    cpu.mov(R16::SP, 0xABCD);
     assert(cpu.sp() == 0xABCD);
 }
 
 void testMovsReg(CPU& cpu)
 {
-    cpu.mov(CPU::AH, CPU::AL);
+    cpu.mov(R8::AH, R8::AL);
     assert(cpu.al() == cpu.ah());
 
-    cpu.mov(CPU::BH, CPU::CL);
+    cpu.mov(R8::BH, R8::CL);
     assert(cpu.cl() == cpu.bh());
 
-    cpu.mov(CPU::CH, CPU::BL);
+    cpu.mov(R8::CH, R8::BL);
     assert(cpu.ch() == cpu.bl());
 
-    cpu.mov(CPU::DL, CPU::AH);
+    cpu.mov(R8::DL, R8::AH);
     assert(cpu.ah() == cpu.dl());
 
-    cpu.mov(CPU::DH, CPU::AL);
+    cpu.mov(R8::DH, R8::AL);
     assert(cpu.al() == cpu.dh());
 
-    cpu.mov(CPU::BP, CPU::AX);
+    cpu.mov(R16::BP, R16::AX);
     assert(cpu.ax() == cpu.bp());
 
-    cpu.mov(CPU::SI, CPU::BX);
+    cpu.mov(R16::SI, R16::BX);
     assert(cpu.bx() == cpu.si());
 
-    cpu.mov(CPU::DI, CPU::CX);
+    cpu.mov(R16::DI, R16::CX);
     assert(cpu.cx() == cpu.di());
 
-    cpu.mov(CPU::SP, CPU::DX);
+    cpu.mov(R16::SP, R16::DX);
     assert(cpu.dx() == cpu.sp());
 }
 
@@ -141,25 +141,25 @@ void testMovsMem(CPU& cpu, Memory& mem)
     cpu.mov(cpu.wordPtr(0x10), 0x1234);
     assert(mem.get<word_t>(cpu.ds(), 0x10) == 0x1234);
 
-    cpu.mov(cpu.bytePtr(CPU::DS, 0x11), 0x89);
+    cpu.mov(cpu.bytePtr(R16::DS, 0x11), 0x89);
     assert(mem.get<byte_t>(cpu.ds(), 0x11) == 0x89);
     assert(mem.get<word_t>(cpu.ds(), 0x10) == 0x8934);
 
-    cpu.mov(CPU::AX, 0xABCD);
-    cpu.mov(cpu.wordPtr(0x20), CPU::AX);
+    cpu.mov(R16::AX, 0xABCD);
+    cpu.mov(cpu.wordPtr(0x20), R16::AX);
     assert(mem.get<word_t>(cpu.ds(), 0x20) == 0xABCD);
 
-    cpu.mov(CPU::BX, cpu.wordPtr(0x20));
+    cpu.mov(R16::BX, cpu.wordPtr(0x20));
     assert(cpu.bx() == 0xABCD);
 
-    cpu.mov(CPU::ES, mem.allocPage());
+    cpu.mov(R16::ES, mem.allocPage());
     assert(cpu.ds() != cpu.es());
     assert(cpu.ss() != cpu.es());
 
-    cpu.mov(cpu.wordPtr(CPU::ES, 0x30), 0xEFCD);
+    cpu.mov(cpu.wordPtr(R16::ES, 0x30), 0xEFCD);
     assert(mem.get<word_t>(cpu.es(), 0x30) == 0xEFCD);
 
-    cpu.mov(CPU::FS, cpu.es());
+    cpu.mov(R16::FS, cpu.es());
     assert(cpu.es() == cpu.fs());
     assert(mem.get<byte_t>(cpu.fs(), 0x30) == 0xCD);
     assert(mem.get<byte_t>(cpu.fs(), 0x31) == 0xEF);
@@ -167,8 +167,8 @@ void testMovsMem(CPU& cpu, Memory& mem)
 
 void testPushPop(CPU& cpu, Memory& mem)
 {
-    cpu.mov(CPU::SP, 0x1000);
-    cpu.mov(CPU::AX, CPU::SP);
+    cpu.mov(R16::SP, 0x1000);
+    cpu.mov(R16::AX, R16::SP);
 
     cpu.push(765);
     assert(cpu.sp() + 2 == cpu.ax());
@@ -183,8 +183,8 @@ void testPushPop(CPU& cpu, Memory& mem)
     assert(cpu.sp() + 6 == cpu.ax());
     assert(mem.get<word_t>(cpu.ss(), cpu.sp()) == 0x5775);
 
-    cpu.mov(cpu.wordPtr(CPU::ES, 0x10), 0xFEDC);
-    cpu.push(cpu.wordPtr(CPU::ES, 0x10));
+    cpu.mov(cpu.wordPtr(R16::ES, 0x10), 0xFEDC);
+    cpu.push(cpu.wordPtr(R16::ES, 0x10));
     assert(cpu.sp() + 8 == cpu.ax());
     assert(mem.get<word_t>(cpu.ss(), cpu.sp()) == 0xFEDC);
 
@@ -192,29 +192,29 @@ void testPushPop(CPU& cpu, Memory& mem)
     assert(cpu.sp() + 6 == cpu.ax());
     assert(mem.get<word_t>(cpu.ds(), 0x102) == 0xFEDC);
 
-    cpu.pop(cpu.wordPtr(CPU::ES, 0x1020));
+    cpu.pop(cpu.wordPtr(R16::ES, 0x1020));
     assert(cpu.sp() + 4 == cpu.ax());
     assert(mem.get<word_t>(cpu.es(), 0x1020) == 0x5775);
 
-    cpu.pop(CPU::BX);
+    cpu.pop(R16::BX);
     assert(cpu.sp() + 2 == cpu.ax());
     assert(cpu.bx() == 0xCCEE);
 
-    cpu.pop(CPU::CX);
+    cpu.pop(R16::CX);
     assert(cpu.sp() == cpu.ax());
     assert(cpu.cx() == 765);
 }
 
 void testPushaPopa(CPU& cpu, Memory& mem)
 {
-    cpu.mov(CPU::AX, 0x1234);
-    cpu.mov(CPU::BX, 0x5678);
-    cpu.mov(CPU::CX, 0x90AB);
-    cpu.mov(CPU::DX, 0xCDEF);
-    cpu.mov(CPU::BP, 0xEFDC);
-    cpu.mov(CPU::SI, 0xBA98);
-    cpu.mov(CPU::DI, 0x7654);
-    cpu.mov(CPU::SP, 0x3210);
+    cpu.mov(R16::AX, 0x1234);
+    cpu.mov(R16::BX, 0x5678);
+    cpu.mov(R16::CX, 0x90AB);
+    cpu.mov(R16::DX, 0xCDEF);
+    cpu.mov(R16::BP, 0xEFDC);
+    cpu.mov(R16::SI, 0xBA98);
+    cpu.mov(R16::DI, 0x7654);
+    cpu.mov(R16::SP, 0x3210);
 
     cpu.pusha();
     assert(cpu.ax() == 0x1234);
@@ -235,13 +235,13 @@ void testPushaPopa(CPU& cpu, Memory& mem)
     assert(mem.get<word_t>(cpu.ss(), 0x320C) == 0x90AB);
     assert(mem.get<word_t>(cpu.ss(), 0x320E) == 0x1234);
 
-    cpu.mov(CPU::AX, 0);
-    cpu.mov(CPU::BX, 0);
-    cpu.mov(CPU::CX, 0);
-    cpu.mov(CPU::DX, 0);
-    cpu.mov(CPU::BP, 0);
-    cpu.mov(CPU::SI, 0);
-    cpu.mov(CPU::DI, 0);
+    cpu.mov(R16::AX, 0);
+    cpu.mov(R16::BX, 0);
+    cpu.mov(R16::CX, 0);
+    cpu.mov(R16::DX, 0);
+    cpu.mov(R16::BP, 0);
+    cpu.mov(R16::SI, 0);
+    cpu.mov(R16::DI, 0);
 
     cpu.popa();
     assert(cpu.ax() == 0x1234);
@@ -256,9 +256,9 @@ void testPushaPopa(CPU& cpu, Memory& mem)
 
 void testEnterLeave(CPU& cpu)
 {
-    cpu.mov(CPU::SP, 0x100);
-    cpu.mov(CPU::BX, CPU::SP);
-    cpu.mov(CPU::BP, 0x200);
+    cpu.mov(R16::SP, 0x100);
+    cpu.mov(R16::BX, R16::SP);
+    cpu.mov(R16::BP, 0x200);
 
     cpu.enter(0x10, 0);
     assert(cpu.sp() == cpu.bx() - 0x12);
