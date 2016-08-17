@@ -254,6 +254,21 @@ void testPushaPopa(CPU& cpu, Memory& mem)
     assert(cpu.sp() == 0x3210);
 }
 
+void testEnterLeave(CPU& cpu)
+{
+    cpu.mov(CPU::SP, 0x100);
+    cpu.mov(CPU::BX, CPU::SP);
+    cpu.mov(CPU::BP, 0x200);
+
+    cpu.enter(0x10, 0);
+    assert(cpu.sp() == cpu.bx() - 0x12);
+    assert(cpu.bp() == cpu.bx() - 2);
+
+    cpu.leave();
+    assert(cpu.sp() == 0x100);
+    assert(cpu.bp() == 0x200);
+}
+
 int main()
 {
     Memory mem;
@@ -266,4 +281,5 @@ int main()
     testMovsMem(cpu, mem);
     testPushPop(cpu, mem);
     testPushaPopa(cpu, mem);
+    testEnterLeave(cpu);
 }
