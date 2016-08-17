@@ -20,6 +20,7 @@
 #define VX16_H_INCLUDED
 
 #include <cstdint>
+#include <cassert>
 #include <array>
 #include <vector>
 
@@ -393,6 +394,20 @@ namespace vx16
             pop(DX);
             pop(CX);
             pop(AX);
+        }
+
+        void enter(word_t size, word_t nesting)
+        {
+            assert(0 == nesting && "nesting is not supported yet");
+            push(BP);
+            m_bp = m_sp;
+            m_sp -= size;
+        }
+
+        void leave()
+        {
+            m_sp = m_bp;
+            pop(BP);
         }
 
     private:
