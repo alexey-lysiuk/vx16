@@ -205,6 +205,55 @@ void testPushPop(CPU& cpu, Memory& mem)
     assert(cpu.cx() == 765);
 }
 
+void testPushaPopa(CPU& cpu, Memory& mem)
+{
+    cpu.mov(CPU::AX, 0x1234);
+    cpu.mov(CPU::BX, 0x5678);
+    cpu.mov(CPU::CX, 0x90AB);
+    cpu.mov(CPU::DX, 0xCDEF);
+    cpu.mov(CPU::BP, 0xEFDC);
+    cpu.mov(CPU::SI, 0xBA98);
+    cpu.mov(CPU::DI, 0x7654);
+    cpu.mov(CPU::SP, 0x3210);
+
+    cpu.pusha();
+    assert(cpu.ax() == 0x1234);
+    assert(cpu.bx() == 0x5678);
+    assert(cpu.cx() == 0x90AB);
+    assert(cpu.dx() == 0xCDEF);
+    assert(cpu.bp() == 0xEFDC);
+    assert(cpu.si() == 0xBA98);
+    assert(cpu.di() == 0x7654);
+    assert(cpu.sp() == 0x3200);
+
+    assert(mem.get<word_t>(cpu.ss(), 0x3200) == 0x7654);
+    assert(mem.get<word_t>(cpu.ss(), 0x3202) == 0xBA98);
+    assert(mem.get<word_t>(cpu.ss(), 0x3204) == 0xEFDC);
+    assert(mem.get<word_t>(cpu.ss(), 0x3206) == 0x3210);
+    assert(mem.get<word_t>(cpu.ss(), 0x3208) == 0x5678);
+    assert(mem.get<word_t>(cpu.ss(), 0x320A) == 0xCDEF);
+    assert(mem.get<word_t>(cpu.ss(), 0x320C) == 0x90AB);
+    assert(mem.get<word_t>(cpu.ss(), 0x320E) == 0x1234);
+
+    cpu.mov(CPU::AX, 0);
+    cpu.mov(CPU::BX, 0);
+    cpu.mov(CPU::CX, 0);
+    cpu.mov(CPU::DX, 0);
+    cpu.mov(CPU::BP, 0);
+    cpu.mov(CPU::SI, 0);
+    cpu.mov(CPU::DI, 0);
+
+    cpu.popa();
+    assert(cpu.ax() == 0x1234);
+    assert(cpu.bx() == 0x5678);
+    assert(cpu.cx() == 0x90AB);
+    assert(cpu.dx() == 0xCDEF);
+    assert(cpu.bp() == 0xEFDC);
+    assert(cpu.si() == 0xBA98);
+    assert(cpu.di() == 0x7654);
+    assert(cpu.sp() == 0x3210);
+}
+
 int main()
 {
     Memory mem;
@@ -216,4 +265,5 @@ int main()
     testMovsReg(cpu);
     testMovsMem(cpu, mem);
     testPushPop(cpu, mem);
+    testPushaPopa(cpu, mem);
 }
