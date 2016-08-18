@@ -337,6 +337,11 @@ namespace vx16
             m_dx = (m_ax & 0x8000) ? 0xFFFF : 0;
         }
 
+        void xlat()
+        {
+            m_al = m_memory->get(bytePtr(m_bx + m_al));
+        }
+
         void push(word_t imm)
         {
             m_sp -= 2;
