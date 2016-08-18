@@ -332,6 +332,11 @@ namespace vx16
             setValue(reg, m_memory->get(address));
         }
 
+        void cwd()
+        {
+            m_dx = (m_ax & 0x8000) ? 0xFFFF : 0;
+        }
+
         void push(word_t imm)
         {
             m_sp -= 2;
