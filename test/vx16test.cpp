@@ -165,6 +165,21 @@ void testMovsMem(CPU& cpu, Memory& mem)
     assert(mem.get<byte_t>(cpu.fs(), 0x31) == 0xEF);
 }
 
+void testCwd(CPU& cpu)
+{
+    cpu.mov(R16::AX, 0xFEDC);
+    cpu.mov(R16::DX, 0);
+    cpu.cwd();
+    assert(cpu.ax() == 0xFEDC);
+    assert(cpu.dx() == 0xFFFF);
+
+    cpu.mov(R16::AX, 0x7FFF);
+    cpu.mov(R16::DX, 0x1234);
+    cpu.cwd();
+    assert(cpu.ax() == 0x7FFF);
+    assert(cpu.dx() == 0);
+}
+
 void testPushPop(CPU& cpu, Memory& mem)
 {
     cpu.mov(R16::SP, 0x1000);
@@ -279,6 +294,7 @@ int main()
     testMovsImm(cpu);
     testMovsReg(cpu);
     testMovsMem(cpu, mem);
+    testCwd(cpu);
     testPushPop(cpu, mem);
     testPushaPopa(cpu, mem);
     testEnterLeave(cpu);
