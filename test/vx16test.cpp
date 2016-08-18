@@ -180,6 +180,30 @@ void testCwd(CPU& cpu)
     assert(cpu.dx() == 0);
 }
 
+void testXlat(CPU& cpu)
+{
+    cpu.mov(R16::BX, 0x1000);
+    cpu.mov(cpu.bytePtr(0x1000), 0x10);
+    cpu.mov(cpu.bytePtr(0x1001), 0x20);
+    cpu.mov(cpu.wordPtr(0x1028), 0x4030);
+
+    cpu.mov(R16::AX, 0);
+    cpu.xlat();
+    assert(cpu.al() == 0x10);
+
+    cpu.mov(R8::AL, 1);
+    cpu.xlat();
+    assert(cpu.al() == 0x20);
+
+    cpu.mov(R8::AL, 0x28);
+    cpu.xlat();
+    assert(cpu.al() == 0x30);
+
+    cpu.mov(R8::AL, 0x29);
+    cpu.xlat();
+    assert(cpu.al() == 0x40);
+}
+
 void testPushPop(CPU& cpu, Memory& mem)
 {
     cpu.mov(R16::SP, 0x1000);
@@ -295,6 +319,7 @@ int main()
     testMovsReg(cpu);
     testMovsMem(cpu, mem);
     testCwd(cpu);
+    testXlat(cpu);
     testPushPop(cpu, mem);
     testPushaPopa(cpu, mem);
     testEnterLeave(cpu);
